@@ -57833,6 +57833,9 @@ var Colyseus = __importStar(require("colyseus.js"));
 
 var PIXI = __importStar(require("pixi.js"));
 
+var APP_WIDTH = 400;
+var APP_HEIGHT = 400;
+
 var MainApp =
 /** @class */
 function (_super) {
@@ -57841,15 +57844,19 @@ function (_super) {
   function MainApp() {
     var _this = _super.call(this) || this;
 
-    _this.ttt = new TTTBoard();
-    _this.view.width = 450;
-    _this.view.height = 450;
+    _this.view.width = APP_WIDTH;
+    _this.view.height = APP_HEIGHT;
     document.body.appendChild(_this.view); // Add it to the stage to render
 
-    _this.stage.addChild(_this.ttt);
+    _this.addboard();
 
     return _this;
   }
+
+  MainApp.prototype.addboard = function () {
+    this.tttboard = new TTTBoard();
+    this.stage.addChild(this.tttboard);
+  };
 
   return MainApp;
 }(PIXI.Application);
@@ -57862,11 +57869,24 @@ function (_super) {
   function TTTBoard() {
     var _this = _super.call(this) || this;
 
-    _this.NO_OF_BOXES = 9;
-    _this.box = new TTTBox(0, 0, _this.NO_OF_BOXES);
+    _this.boxarray = [];
+    var nrows = 3;
+    var ncols = 3;
 
-    _this.addChild(_this.box);
+    for (var row = 0; row < nrows; row++) {
+      for (var col = 0; col < ncols; col++) {
+        _this.box = new TTTBox(row, col);
 
+        _this.boxarray.push(_this.box);
+
+        _this.addChild(_this.box);
+      }
+    }
+
+    _this.pivot.x = _this.width / 2;
+    _this.pivot.y = _this.height / 2;
+    _this.x = APP_WIDTH / 2;
+    _this.y = APP_HEIGHT / 2;
     return _this;
   }
 
@@ -57878,17 +57898,71 @@ var TTTBox =
 function (_super) {
   __extends(TTTBox, _super);
 
-  function TTTBox(posx, posy, nboxes) {
+  function TTTBox(posX, posY) {
     var _this = _super.call(this) || this;
 
+    _this.POSX = 0;
+    _this.POSY = 0;
+    _this.WIDTH = 0;
+    _this.HEIGHT = 0;
+    _this.conditions = [" ", "X", "O"];
+    _this.status = _this.conditions[0];
     _this.color = 0xffffff;
-    _this.obj.width = APP.view.width / nboxes;
-    _this.obj.height = APP.view.height / nboxes;
-    _this.obj.radius = 20;
-    _this.buttonMode = true;
-    _this.interactive = true;
+
+    _this.drawboxes(posX, posY);
+
+    _this.displaysign();
+
+    _this.clickevent();
+
     return _this;
   }
+
+  TTTBox.prototype.drawboxes = function (posX, posY) {
+    var OFFSETX = 5;
+    var OFFSETY = 5;
+    this.WIDTH = 0.25 * APP_WIDTH;
+    this.HEIGHT = 0.25 * APP_HEIGHT;
+    this.POSX = posX * (this.WIDTH + OFFSETX);
+    this.POSY = posY * (this.HEIGHT + OFFSETY);
+    this.buttonMode = true;
+    this.interactive = true;
+    this.beginFill(0xffffff);
+    this.drawRect(this.POSX, this.POSY, this.WIDTH, this.HEIGHT);
+    this.endFill();
+  };
+
+  TTTBox.prototype.displaysign = function () {
+    this.textStyle = new PIXI.TextStyle({
+      fontFamily: "Comic Sans MS",
+      fontSize: 50
+    });
+    this.letter = new PIXI.Text(this.status, this.textStyle);
+    this.letter.x = this.POSX + 0.3 * this.WIDTH;
+    this.letter.y = this.POSY + 0.2 * this.HEIGHT;
+    this.addChild(this.letter);
+  };
+
+  TTTBox.prototype.clickevent = function () {
+    this.on("pointerdown", function () {
+      PLAYER.room.send("updatesign");
+
+      PLAYER.room.state.onchange = function (changes) {
+        changes.foreach(function (change) {
+          console.log(change);
+        });
+      };
+      /*
+      PLAYER.room.onMessage("newboxstatus",(message)=>
+      {
+          this.letter.text=message;
+          this.addChild(this.letter);
+          console.log("done");
+      });
+      */
+
+    });
+  };
 
   return TTTBox;
 }(PIXI.Graphics);
@@ -57929,8 +58003,6 @@ function (_super) {
       });
 
       _this.room.onMessage("return", function (message) {
-        console.log("server just sent this message:");
-        console.log(message);
         var textarea = document.getElementById("chatbox");
         var oldValue = textarea.value;
         var newValue = oldValue + "\n" + message;
@@ -57945,13 +58017,24 @@ function (_super) {
     var _this = this;
 
     window.onload = function () {
-      var BUTTON = document.getElementById("send");
+      var INPUT_AREA = document.getElementById("inputmsg");
+      var BUTTON = document.getElementById("sendbtn");
+
+      var sendmsg = function sendmsg() {
+        var MESSAGE = document.getElementById("inputmsg");
+
+        _this.room.send("say", MESSAGE.value);
+
+        MESSAGE.value = " ";
+      };
+
+      INPUT_AREA.addEventListener("keydown", function (event) {
+        if (event.code == "Enter") {
+          sendmsg();
+        }
+      });
       BUTTON.addEventListener("click", function () {
-        var message = document.getElementById("msgbox");
-
-        _this.room.send("say", message.value);
-
-        message.value = " ";
+        sendmsg();
       });
     };
   };
@@ -57988,7 +58071,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65284" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57714" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
