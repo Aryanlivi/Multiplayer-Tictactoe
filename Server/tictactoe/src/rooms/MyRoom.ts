@@ -6,7 +6,6 @@ export class MyRoom extends Room<MyRoomState> {
 
   onCreate (options: any) {
     this.setState(new MyRoomState());
-    
   }
 
   onJoin (client: Client,options:any) {
@@ -28,8 +27,9 @@ export class MyRoom extends Room<MyRoomState> {
     }
     this.onMessage("updatesign",()=>
     {
-      this.state.status="X";
+      //this.state.status="X";
       console.log("update");
+      console.log(this.state.Boxes);
       //this.broadcast("newboxstatus",this.state.status);
     });
 

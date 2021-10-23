@@ -1,9 +1,11 @@
+import { Room } from "colyseus.js";
 import * as PIXI from "pixi.js"
 import {TTTClient} from "../ClientServer"
 const APP_WIDTH:number=400;
 const APP_HEIGHT:number=400;
-const tttclient=new TTTClient();
-class MainApp extends PIXI.Application
+const client=new TTTClient();
+let roomState=null;
+class TicTacToe extends PIXI.Application
 {
     tttboard:TTTBoard;
     constructor()
@@ -13,23 +15,27 @@ class MainApp extends PIXI.Application
         this.view.height=APP_HEIGHT;
         document.body.appendChild(this.view);
         // Add it to the stage to render
-        this.addboard();
+        this.init();
     }
-    addboard()
+    async init()
     {
-        this.tttboard=new TTTBoard();
-        this.stage.addChild(this.tttboard);
+        const room_created=await client.connect();
+        if(room_created)
+        {
+            roomState=client.room.state;
+            this.tttboard=new TTTBoard();
+            this.stage.addChild(this.tttboard);
+        }
     }
 } 
 class TTTBoard extends PIXI.Container
 { 
     box:TTTBox;
-    boxarray:Array<TTTBox>=[];
-    clicked_box:TTTBox;
+    Boxes:Array<TTTBox>=[];
+    ibox:TTTBox;//Interacted Box
     constructor()
     {
         super();
-  
         const nrows:number=3;
         const ncols:number=3;
         for(let row=0;row<nrows;row++)
@@ -37,7 +43,9 @@ class TTTBoard extends PIXI.Container
             for(let col=0;col<ncols;col++)
             {
                 this.box=new TTTBox(row,col);
-                this.boxarray.push(this.box);
+                this.Boxes.push(this.box);
+                roomState.Boxes.push(this.box);
+                console.log(roomState.Boxes);
                 this.addChild(this.box);
             }
         }
@@ -61,7 +69,7 @@ class TTTBox extends PIXI.Graphics
     constructor(posX:number,posY:number)
     {
         super();
-        this.drawboxes(posX,posY)
+        this.drawboxes(posX,posY);
         this.displaysign();
         this.clickevent();
     }
@@ -91,12 +99,13 @@ class TTTBox extends PIXI.Graphics
         this.letter.x=this.POSX+0.3*this.WIDTH;
         this.letter.y=this.POSY+0.2*this.HEIGHT;
         this.addChild(this.letter);
+        
     }
     clickevent()
     {
         this.on("pointerdown",()=>{
-            tttclient.room.send("updatesign");
-            tttclient.room.state.onChange=(changes)=>{
+            client.room.send("updatesign");
+            client.room.state.onChange=(changes)=>{
                 changes.forEach(change=>{
                     if(change.field=="status")
                         {
@@ -109,7 +118,10 @@ class TTTBox extends PIXI.Graphics
         });
     }
 }
-const APP=new MainApp(); 
+
+const APP=new TicTacToe(); 
+
+
 
 /*
             PLAYER.room.onMessage("newboxstatus",(message)=>
@@ -118,5 +130,5 @@ const APP=new MainApp();
                 this.addChild(this.letter);
                 console.log("done");
             });
-        */
+*/
             
