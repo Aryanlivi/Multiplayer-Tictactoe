@@ -5,7 +5,7 @@ export class TTTClient extends Colyseus.Client{
     {
         super();
         this.endpoint='ws://localhost:2567';
-        this.messagebox();
+        //this.messagebox();
     }
     async connect()
     {

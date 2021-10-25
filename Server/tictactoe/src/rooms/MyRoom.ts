@@ -11,6 +11,7 @@ export class MyRoom extends Room<MyRoomState> {
   onJoin (client: Client,options:any) {
 
     console.log(client.sessionId, "joined!");
+    /*
     let oldmessage:string;
     let oldclient_id:string;
     this.onMessage("say", (client, message) => 
@@ -25,22 +26,24 @@ export class MyRoom extends Room<MyRoomState> {
     {
       client.send("return",oldclient_id+": "+oldmessage);
     }
-    this.onMessage("updatesign",()=>
+    */
+    this.onMessage("updatesign",(client,index)=>
     {
-      //this.state.status="X";
-      console.log("update");
-      console.log(this.state.Boxes);
-      //this.broadcast("newboxstatus",this.state.status);
+      this.state.Boxes[index].status="X";
+      //this.state.status="O"
+      //console.log(this.state.Boxes);
+      const ibox={
+        status:this.state.Boxes[index].status,
+        index:index
+      }
+      this.broadcast("update",ibox);
     });
-
-
-    this.state.clientCount++;
+    this.state.nplayers++;
   }
 
   onLeave (client: Client, consented: boolean) {
     console.log(client.sessionId, "left!");
-    this.state.clientCount--;
-    console.log(this.state.clientCount);
+    this.state.nplayers--;
   }
 
   onDispose() {

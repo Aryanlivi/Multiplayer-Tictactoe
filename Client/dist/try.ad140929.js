@@ -57985,10 +57985,7 @@ function (_super) {
 
     _this.room = null;
     _this.endpoint = 'ws://localhost:2567';
-
-    _this.messagebox();
-
-    return _this;
+    return _this; //this.messagebox();
   }
 
   TTTClient.prototype.connect = function () {
@@ -58312,7 +58309,27 @@ function (_super) {
 
   TicTacToe.prototype.init = function () {
     return __awaiter(this, void 0, void 0, function () {
-      var room_created;
+      return __generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            return [4
+            /*yield*/
+            , this.createboard()];
+
+          case 1:
+            _a.sent();
+
+            this.interact();
+            return [2
+            /*return*/
+            ];
+        }
+      });
+    });
+  };
+
+  TicTacToe.prototype.createboard = function () {
+    return __awaiter(this, void 0, void 0, function () {
       return __generator(this, function (_a) {
         switch (_a.label) {
           case 0:
@@ -58321,20 +58338,38 @@ function (_super) {
             , client.connect()];
 
           case 1:
-            room_created = _a.sent();
+            _a.sent();
 
-            if (room_created) {
-              roomState = client.room.state;
-              this.tttboard = new TTTBoard();
-              this.stage.addChild(this.tttboard);
-            }
+            roomState = client.room.state; //console.log(roomState.nplayers);
 
+            this.tttboard = new TTTBoard();
+            this.stage.addChild(this.tttboard);
             return [2
             /*return*/
             ];
         }
       });
     });
+  };
+
+  TicTacToe.prototype.interact = function () {
+    var _this = this;
+
+    this.tttboard.Boxes.forEach(function (box) {
+      box.on("pointerdown", function () {
+        client.room.send("updatesign", box.index);
+      });
+    });
+    client.room.onMessage("update", function (message) {
+      _this.update(message);
+    });
+  };
+
+  TicTacToe.prototype.update = function (ibox) {
+    var box = this.tttboard.Boxes[ibox.index];
+    box.status = ibox.status;
+    box.letter.text = box.status;
+    box.addChild(box.letter);
   };
 
   return TicTacToe;
@@ -58351,17 +58386,17 @@ function (_super) {
     _this.Boxes = [];
     var nrows = 3;
     var ncols = 3;
+    var index = 0;
 
     for (var row = 0; row < nrows; row++) {
       for (var col = 0; col < ncols; col++) {
-        _this.box = new TTTBox(row, col);
+        _this.box = new TTTBox(index, row, col);
 
         _this.Boxes.push(_this.box);
 
-        roomState.Boxes.push(_this.box);
-        console.log(roomState.Boxes);
-
         _this.addChild(_this.box);
+
+        index++;
       }
     }
 
@@ -58380,27 +58415,24 @@ var TTTBox =
 function (_super) {
   __extends(TTTBox, _super);
 
-  function TTTBox(posX, posY) {
+  function TTTBox(index, posX, posY) {
     var _this = _super.call(this) || this;
 
     _this.POSX = 0;
     _this.POSY = 0;
     _this.WIDTH = 0;
     _this.HEIGHT = 0;
-    _this.conditions = [" ", "X", "O"];
-    _this.status = _this.conditions[0];
     _this.color = 0xffffff;
 
-    _this.drawboxes(posX, posY);
+    _this.drawboxes(index, posX, posY);
 
-    _this.displaysign();
-
-    _this.clickevent();
+    _this.initsign();
 
     return _this;
   }
 
-  TTTBox.prototype.drawboxes = function (posX, posY) {
+  TTTBox.prototype.drawboxes = function (index, posX, posY) {
+    this.index = index;
     var OFFSETX = 5;
     var OFFSETY = 5;
     this.WIDTH = 0.25 * APP_WIDTH;
@@ -58414,46 +58446,22 @@ function (_super) {
     this.endFill();
   };
 
-  TTTBox.prototype.displaysign = function () {
+  TTTBox.prototype.initsign = function () {
     this.textStyle = new PIXI.TextStyle({
       fontFamily: "Comic Sans MS",
       fontSize: 50
     });
+    this.status = "";
     this.letter = new PIXI.Text(this.status, this.textStyle);
     this.letter.x = this.POSX + 0.3 * this.WIDTH;
     this.letter.y = this.POSY + 0.2 * this.HEIGHT;
     this.addChild(this.letter);
   };
 
-  TTTBox.prototype.clickevent = function () {
-    var _this = this;
-
-    this.on("pointerdown", function () {
-      client.room.send("updatesign");
-
-      client.room.state.onChange = function (changes) {
-        changes.forEach(function (change) {
-          if (change.field == "status") {
-            _this.status = change.value;
-            _this.letter.text = change.value;
-          }
-        });
-      };
-    });
-  };
-
   return TTTBox;
 }(PIXI.Graphics);
 
 var APP = new TicTacToe();
-/*
-            PLAYER.room.onMessage("newboxstatus",(message)=>
-            {
-                this.letter.text=message;
-                this.addChild(this.letter);
-                console.log("done");
-            });
-*/
 },{"pixi.js":"../node_modules/pixi.js/dist/esm/pixi.js","../ClientServer":"ClientServer.ts"}],"C:/Users/aryan/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -58482,7 +58490,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "57889" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60307" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
