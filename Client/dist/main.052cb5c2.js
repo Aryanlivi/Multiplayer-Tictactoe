@@ -58075,7 +58075,7 @@ function (_super) {
 }(Colyseus.Client);
 
 exports.TTTClient = TTTClient;
-},{"colyseus.js":"../node_modules/colyseus.js/dist/colyseus.js"}],"scripts/try.ts":[function(require,module,exports) {
+},{"colyseus.js":"../node_modules/colyseus.js/dist/colyseus.js"}],"scripts/main.ts":[function(require,module,exports) {
 "use strict";
 
 var __extends = this && this.__extends || function () {
@@ -58527,7 +58527,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54643" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64515" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -58703,5 +58703,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["C:/Users/aryan/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","scripts/try.ts"], null)
-//# sourceMappingURL=/try.ad140929.js.map
+},{}]},{},["C:/Users/aryan/AppData/Roaming/npm/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","scripts/main.ts"], null)
+//# sourceMappingURL=/main.052cb5c2.js.map

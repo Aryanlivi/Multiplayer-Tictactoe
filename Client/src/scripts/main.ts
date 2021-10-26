@@ -1,9 +1,12 @@
 import * as PIXI from "pixi.js"
 import {TTTClient} from "../ClientServer"
+//App resolutions:
 const APP_WIDTH:number=400;
 const APP_HEIGHT:number=400;
+//Client instance that connects to Server.
 const client=new TTTClient();
 let roomState=null;
+let player=null;
 class TicTacToe extends PIXI.Application
 {
     tttboard:TTTBoard;
@@ -18,33 +21,57 @@ class TicTacToe extends PIXI.Application
     }
     async init()
     {
+        //wait for app to create TTT board before interaction.
         await this.createboard();
-        this.interact();
+
+        //Client gets info about its type and index.
+        client.room.onMessage("playerinfo",(playerinfo)=>{
+            player=playerinfo;
+        })
+
+        //checks if both players have connected successfully.
+        client.room.onMessage("nplayers",(nplayers)=>{
+            if(nplayers==2)
+            {
+                this.interact();
+            }
+            else
+            {
+                console.log("waiting for opponent!");
+            }
+        })
     }
     async createboard()
     {
+        //establishes client server connection.
         await client.connect();
+        //RoomState of the room.
         roomState=client.room.state;
-        //console.log(roomState.nplayers);
         this.tttboard=new TTTBoard();
+        //add board to stage
         this.stage.addChild(this.tttboard);
     }
+    //interactions with TTTboard
     interact()
     {
+        //sends the index and status of the interacted box
         this.tttboard.Boxes.forEach((box)=>{
             box.on("pointerdown",()=>{
-                client.room.send("updatesign",box.index);
+                client.room.send("updatesign",{index:box.index,status:player.type});
             });
         })
+        //accepts request for updates in game.
         client.room.onMessage("update",(message)=>{
             this.update(message);
         })
     }
     update(ibox)
     {
+        //updates status and text of required boxes.
         const box=this.tttboard.Boxes[ibox.index];
         box.status=ibox.status;
         box.letter.text=box.status;
+        //for updating box in stage
         box.addChild(box.letter);
     }
 } 
@@ -52,10 +79,11 @@ class TTTBoard extends PIXI.Container
 { 
     box:TTTBox;
     Boxes:Array<TTTBox>=[];
-    ibox:TTTBox;//Interacted Box
+
     constructor()
     {
         super();
+        //Create 3x3 board made of TTTBox;
         const nrows:number=3;
         const ncols:number=3;
         let index=0;
@@ -69,6 +97,7 @@ class TTTBoard extends PIXI.Container
                 index++;
             }
         }
+        //Adjust TTTBoard to the center of view.
         this.pivot.x=this.width/2;
         this.pivot.y=this.height/2;
         this.x=APP_WIDTH/2;
@@ -84,14 +113,13 @@ class TTTBox extends PIXI.Graphics
     HEIGHT:number=0;
     textStyle:PIXI.TextStyle;
     letter:PIXI.Text;
-    //conditions:Array<string>=[" ","X","O"];
     status:string;
     color=0xffffff;
     constructor(index:number,posX:number,posY:number)
     {
         super();
         this.drawboxes(index,posX,posY);
-        this.initsign();
+        this.addletter();
     }
     drawboxes(index:number,posX:number,posY:number)
     {
@@ -108,7 +136,7 @@ class TTTBox extends PIXI.Graphics
         this.drawRect(this.POSX,this.POSY,this.WIDTH,this.HEIGHT);
         this.endFill();
     }
-    initsign()
+    addletter()
     {
         this.textStyle=new PIXI.TextStyle(
             {

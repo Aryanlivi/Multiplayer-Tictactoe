@@ -5,13 +5,13 @@ export class TTTClient extends Colyseus.Client{
     {
         super();
         this.endpoint='ws://localhost:2567';
-        //this.messagebox();
     }
     async connect()
     {
         try
         {
             this.room=await this.joinOrCreate("my_room");
+            //this.messagebox();
         }
         catch(error)
         {
@@ -23,9 +23,9 @@ export class TTTClient extends Colyseus.Client{
     messagebox()
     {
         window.onload=()=>{
-
             const INPUT_AREA=<HTMLInputElement>document.getElementById("inputmsg");
             const BUTTON=<HTMLInputElement>document.getElementById("sendbtn");
+            /*
             const sendmsg=()=>{
                 const MESSAGE=(<HTMLInputElement>document.getElementById("inputmsg"));
                 this.room.send("say",MESSAGE.value);
@@ -34,29 +34,34 @@ export class TTTClient extends Colyseus.Client{
             INPUT_AREA.addEventListener("keydown",(event)=>{
                 if(event.code=="Enter")
                 {
-                    sendmsg();
+                    const MESSAGE=(<HTMLInputElement>document.getElementById("inputmsg"));
+                    this.room.send("say",MESSAGE.value);
+                    MESSAGE.value=" ";
                 }
             });
+            */
             BUTTON.addEventListener("click",()=>
             {
-                sendmsg();
-            });
-            this.room.onMessage("replied",(message)=>
+                const MESSAGE=(<HTMLInputElement>document.getElementById("inputmsg"));
+                this.room.send("say",MESSAGE.value);
+                MESSAGE.value=" ";
+            });     
+        }
+        this.room.onMessage("replied",(message)=>
             {
                 const textarea=(<HTMLTextAreaElement>document.getElementById("chatbox"));
                 const oldValue=textarea.value;
                 const newValue=oldValue+"\n"+message;
                 textarea.value=newValue;
             });
-    
             this.room.onMessage("return",(message)=>
             {
                 const textarea=(<HTMLTextAreaElement>document.getElementById("chatbox"));
                 const oldValue=textarea.value;
                 const newValue=oldValue+"\n"+message;
                 textarea.value=newValue;
+                console.log("aaaaaaaaa");
             });
-        }
     }
 
 }
