@@ -40,6 +40,16 @@ class TicTacToe extends PIXI.Application
                 console.log("waiting for opponent!");
             }
         })
+
+        //accepts request for updates in game.
+        client.room.onMessage("update",(message)=>{
+            this.update(message);
+        })
+
+        //accepts request for updates in game.
+        client.room.onMessage("GameWon",(message)=>{
+            alert("Player"+message.type+"WON");
+        })
     }
     async createboard()
     {
@@ -59,11 +69,7 @@ class TicTacToe extends PIXI.Application
             box.on("pointerdown",()=>{
                 client.room.send("updatesign",{index:box.index,status:player.type});
             });
-        })
-        //accepts request for updates in game.
-        client.room.onMessage("update",(message)=>{
-            this.update(message);
-        })
+        });
     }
     update(ibox)
     {
@@ -73,6 +79,7 @@ class TicTacToe extends PIXI.Application
         box.letter.text=box.status;
         //for updating box in stage
         box.addChild(box.letter);
+        client.room.send("CheckWinner");
     }
 } 
 class TTTBoard extends PIXI.Container

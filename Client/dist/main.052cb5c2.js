@@ -58343,6 +58343,14 @@ function (_super) {
               } else {
                 console.log("waiting for opponent!");
               }
+            }); //accepts request for updates in game.
+
+            client.room.onMessage("update", function (message) {
+              _this.update(message);
+            }); //accepts request for updates in game.
+
+            client.room.onMessage("GameWon", function (message) {
+              alert("Player" + message.type + "WON");
             });
             return [2
             /*return*/
@@ -58381,9 +58389,7 @@ function (_super) {
 
 
   TicTacToe.prototype.interact = function () {
-    var _this = this; //sends the index and status of the interacted box
-
-
+    //sends the index and status of the interacted box
     this.tttboard.Boxes.forEach(function (box) {
       box.on("pointerdown", function () {
         client.room.send("updatesign", {
@@ -58391,10 +58397,6 @@ function (_super) {
           status: player.type
         });
       });
-    }); //accepts request for updates in game.
-
-    client.room.onMessage("update", function (message) {
-      _this.update(message);
     });
   };
 
@@ -58405,6 +58407,7 @@ function (_super) {
     box.letter.text = box.status; //for updating box in stage
 
     box.addChild(box.letter);
+    client.room.send("CheckWinner");
   };
 
   return TicTacToe;
@@ -58527,7 +58530,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64515" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "59487" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
