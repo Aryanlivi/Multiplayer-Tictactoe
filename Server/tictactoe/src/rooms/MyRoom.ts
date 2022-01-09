@@ -1,7 +1,9 @@
 import { Room, Client } from "colyseus";
+import e from "express";
 //import { Dispatcher } from "@colyseus/command";
 import { GameState } from "./schema/GameState";
 
+let roomstate:GameState=null;
 export class MyRoom extends Room<GameState> {
 
   onCreate (options: any) {
@@ -10,43 +12,54 @@ export class MyRoom extends Room<GameState> {
 
   onJoin (client: Client,options:any) {
     console.log(client.sessionId, "joined!");
-    this.state.nplayers++;
+    roomstate=this.state
+    roomstate.nplayers++;
     const Player={
+      empty:" ",
       X:"X",
       O:"O"
     }
-    if(this.state.nplayers==1)
+    if(roomstate.nplayers==1)
     {
-      this.state.player.type=Player.X;
-      this.state.player.index=this.state.nplayers;
+      roomstate.player.type=Player.X;
+      roomstate.player.index=roomstate.nplayers;
     }
-    else if(this.state.nplayers==2)
+    else if(roomstate.nplayers==2)
     {
-      this.state.player.type=Player.O;
-      this.state.player.index=this.state.nplayers;
+      roomstate.player.type=Player.O;
+      roomstate.player.index=roomstate.nplayers;
     }
     else{console.log("Error!")};
     //since we have to activate user interaction.
-    this.broadcast("nplayers",this.state.nplayers);
+    this.broadcast("nplayers",roomstate.nplayers);
+
     //since only the respective player will get its info.
-    client.send("playerinfo",this.state.player);
+    client.send("playerinfo",roomstate.player);
     this.onMessage("updatesign",(client,box)=>
     {
-      console.log(box);
-      this.state.Boxes[box.index].status=box.status;
-      //this.state.status="O"
-      //console.log(this.state.Boxes);
+      const TTTBox=this.state.Boxes[box.index]
+      if(TTTBox.status==Player.empty)
+      {
+        TTTBox.status=box.status;
+      }
       const ibox={
-        status:this.state.Boxes[box.index].status,
+        status:TTTBox.status,
         index:box.index
       }
       this.broadcast("update",ibox);
+    });
+    
+    this.onMessage("CheckWinner",(client,message)=>{
+      if(roomstate.checkwinner())
+      {
+        this.broadcast("GameWon",roomstate.winner);
+      }
     });
   }
 
   onLeave (client: Client, consented: boolean) {
     console.log(client.sessionId, "left!");
-    this.state.nplayers--;
+    roomstate.nplayers--;
   }
 
   onDispose() {
